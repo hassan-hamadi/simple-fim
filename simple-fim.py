@@ -1,6 +1,7 @@
 import hashlib
 import argparse
 import sys
+import time
 
 def calculate_hash(file_path):
     """Calculate the SHA256 hash of a file."""
@@ -25,10 +26,19 @@ def main():
     args = parser.parse_args()
 
     file_hash = calculate_hash(args.file)
+    baseline_hash = file_hash
     print(f"File: {args.file}")
     print(f"Hash: {file_hash}")
 
+    while True:
+        time.sleep(5)
+        current_hash = calculate_hash(args.file)
+        if current_hash != baseline_hash:
+            print("File has been modified!")
+            print(f"Baseline Hash: {baseline_hash}")
+            print(f"Current Hash: {current_hash}")
+            baseline_hash = current_hash
+            print(f"Baseline hash updated to {baseline_hash}")
+
 if __name__ == "__main__":
     main()
-
-
