@@ -32,7 +32,7 @@ This tool is designed for educational purposes to demonstrate the concepts of **
 Run the script with Python 3:
 
 ```bash
-python main.py -f <file_name>
+python simple-fim.py -f <file_path>
 ```
 
 ## 🗺️ Roadmap
