@@ -4,6 +4,18 @@ import sys
 import time
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import requests
+
+def send_discord_alerts(message, webhook_url):
+    data = {
+        "content": message
+    }
+    try:
+        response = requests.post(webhook_url, json=data)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        print(f"Error sending alert: {e}")
+    
 
 def calculate_hash(file_path):
     """Calculate the SHA256 hash of a file."""
@@ -46,11 +58,15 @@ def calculate_directory_map(target_folder):
     
     return file_map
 
-def log_alert(message, log_path):
+def log_alert(message, log_path, webhook_url=""):
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     print(f"[{timestamp}] {message}")
     with open(log_path, "a") as f:
         f.write(f"[{timestamp}] {message}\n")
+    
+    # Send Discord alert if webhook is configured
+    if webhook_url:
+        send_discord_alerts(f"[{timestamp}] {message}", webhook_url)
 
 def main():
     # Default log path
@@ -62,6 +78,8 @@ def main():
     parser.add_argument("-d", "--directory", required=False, help="Path of directory to monitor")
     parser.add_argument("-l", "--log", required=False, default=default_log_path, 
                         help=f"Path for log file (default: {default_log_path})")
+    parser.add_argument("-w", "--webhook", required=False, default="", 
+                        help="Webhook URL for alerts")
 
     args = parser.parse_args()
     
@@ -91,7 +109,7 @@ def main():
                 print(f"Current Hash: {current_hash}")
                 baseline_hash = current_hash
                 print(f"Baseline hash updated to {baseline_hash}")
-                log_alert(f"File modified: {args.file} | Old: {baseline_hash} | New: {current_hash}", args.log)
+                log_alert(f"File modified: {args.file} | Old: {baseline_hash} | New: {current_hash}", args.log, args.webhook)
 
     # Directory monitoring mode
     if args.directory:
@@ -111,18 +129,18 @@ def main():
             for file_path, baseline_hash in baseline_map.items():
                 if file_path not in current_map:
                     print(f"File deleted: {file_path}")
-                    log_alert(f"File deleted: {file_path}", args.log)
+                    log_alert(f"File deleted: {file_path}", args.log, args.webhook)
                 elif current_map[file_path] != baseline_hash:
                     print(f"File modified: {file_path}")
                     print(f"  Old hash: {baseline_hash}")
                     print(f"  New hash: {current_map[file_path]}")
-                    log_alert(f"File modified: {file_path} | Old: {baseline_hash} | New: {current_map[file_path]}", args.log)
+                    log_alert(f"File modified: {file_path} | Old: {baseline_hash} | New: {current_map[file_path]}", args.log, args.webhook)
             
             # Check for new files
             for file_path in current_map:
                 if file_path not in baseline_map:
                     print(f"New file detected: {file_path}")
-                    log_alert(f"New file detected: {file_path}", args.log)
+                    log_alert(f"New file detected: {file_path}", args.log, args.webhook)
             
             baseline_map = current_map
 
