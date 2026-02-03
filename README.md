@@ -14,6 +14,10 @@ This tool is designed for educational purposes to demonstrate the concepts of **
 - [x] **Calculate Baseline:** Function to calculate SHA-256 hash of a specific target file.
 - [x] **Monitor:** Continuous loop that checks the file every few seconds.
 - [x] **Compare & Alert:** Print "File Modified!" to console if the hash changes.
+- [x] **Directory Monitoring:** Recursively scan and monitor entire directories.
+- [x] **Parallel Hashing:** Uses ThreadPoolExecutor for fast multi-file processing.
+- [x] **Timestamped Logging:** Alerts logged to `integrity_log.txt`.
+- [x] **Discord Alerts:** Push notifications via Discord webhook integration.
 
 
 ## 🛠️ Installation
@@ -32,8 +36,26 @@ This tool is designed for educational purposes to demonstrate the concepts of **
 Run the script with Python 3:
 
 ```bash
+# Monitor a single file
 python simple-fim.py -f <file_path>
+
+# Monitor an entire directory
+python simple-fim.py -d <directory_path>
+
+# Specify a custom log file
+python simple-fim.py -d <directory_path> -l /path/to/logfile.txt
+
+# Enable Discord webhook alerts
+python simple-fim.py -d <directory_path> -w <webhook_url>
 ```
+
+### Options
+| Flag | Description |
+|------|-------------|
+| `-f`, `--file` | Path of a single file to monitor |
+| `-d`, `--directory` | Path of a directory to monitor (recursive) |
+| `-l`, `--log` | Path for log file (default: `~/.simple-fim/integrity_log.txt`) |
+| `-w`, `--webhook` | Discord webhook URL for push notifications |
 
 ## 🗺️ Roadmap
 
@@ -42,10 +64,10 @@ python simple-fim.py -f <file_path>
 - [x] **Monitor:** Continuous loop that checks the file every few seconds.
 - [x] **Compare & Alert:** Print "File Modified!" to console if the hash changes.
 
-### Phase 2: irectory & Alerting
-- [ ] **Watch a Directory:** Crawl an entire folder (recursively) and map every filename to its hash.
-- [ ] **User Interface:** Log alerts to a file (`integrity_log.txt`) with timestamps instead of just print statements.
-- [ ] **Alerting:** Integrate a Webhook (Discord/Slack) for push notifications.
+### Phase 2: Directory & Alerting
+- [x] **Watch a Directory:** Crawl an entire folder (recursively) and map every filename to its hash.
+- [x] **User Interface:** Log alerts to a file (`integrity_log.txt`) with timestamps instead of just print statements.
+- [x] **Alerting:** Integrate a Webhook (Discord/Slack) for push notifications.
 
 ### Phase 3: Cloud & Forensics
 - [ ] **Cloud Sync:** Upload logs to a cloud database (Firebase/AWS).
