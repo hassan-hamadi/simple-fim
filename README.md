@@ -69,9 +69,9 @@ python simple-fim.py -d <directory_path> -w <webhook_url>
 - [x] **User Interface:** Log alerts to a file (`integrity_log.txt`) with timestamps instead of just print statements.
 - [x] **Alerting:** Integrate a Webhook (Discord/Slack) for push notifications.
 
-### Phase 3: Cloud & Forensics
-- [ ] **Cloud Sync:** Upload logs to a cloud database (Firebase/AWS).
-- [ ] **Email Extraction:** Calculate the "diff" (lines added/removed) of text files and email the changes.
+### Phase 3: Diff & Forensics
+- [ ] **Calculate Diff:** Detect exactly which lines were added, removed, or changed in modified text files.
+- [ ] **Detailed Alerts:** Include the diff output in terminal logs, log file entries, and Discord notifications.
 
 ## 📜 License
 
