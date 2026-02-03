@@ -30,9 +30,6 @@ def calculate_directory_map(target_folder):
     # Collect all file paths first
     for root, dirs, files in os.walk(target_folder):
         for file in files:
-            # Skip the log file to avoid infinite self-modification detection
-            if file == "integrity_log.txt":
-                continue
             file_paths.append(os.path.join(root, file))
     
     # Process files in parallel using thread pool
@@ -49,18 +46,30 @@ def calculate_directory_map(target_folder):
     
     return file_map
 
-def log_alert(message):
+def log_alert(message, log_path):
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     print(f"[{timestamp}] {message}")
-    with open("integrity_log.txt", "a") as f:
+    with open(log_path, "a") as f:
         f.write(f"[{timestamp}] {message}\n")
 
 def main():
+    # Default log path
+    default_log_dir = os.path.expanduser("~/.simple-fim")
+    default_log_path = os.path.join(default_log_dir, "integrity_log.txt")
+    
     parser = argparse.ArgumentParser(description="Simple File Integrity Monitor")
     parser.add_argument("-f", "--file", required=False, help="Path of file to monitor")
     parser.add_argument("-d", "--directory", required=False, help="Path of directory to monitor")
+    parser.add_argument("-l", "--log", required=False, default=default_log_path, 
+                        help=f"Path for log file (default: {default_log_path})")
 
     args = parser.parse_args()
+    
+    # Create log directory if it doesn't exist
+    log_dir = os.path.dirname(args.log)
+    if log_dir and not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+        print(f"Created log directory: {log_dir}")
 
     if not args.file and not args.directory:
         print("Please provide a file or directory to monitor")
@@ -82,7 +91,7 @@ def main():
                 print(f"Current Hash: {current_hash}")
                 baseline_hash = current_hash
                 print(f"Baseline hash updated to {baseline_hash}")
-                log_alert(f"File modified: {args.file} | Old: {baseline_hash[:16]}... | New: {current_hash[:16]}...")
+                log_alert(f"File modified: {args.file} | Old: {baseline_hash} | New: {current_hash}", args.log)
 
     # Directory monitoring mode
     if args.directory:
@@ -102,18 +111,18 @@ def main():
             for file_path, baseline_hash in baseline_map.items():
                 if file_path not in current_map:
                     print(f"File deleted: {file_path}")
-                    log_alert(f"File deleted: {file_path}")
+                    log_alert(f"File deleted: {file_path}", args.log)
                 elif current_map[file_path] != baseline_hash:
                     print(f"File modified: {file_path}")
                     print(f"  Old hash: {baseline_hash}")
                     print(f"  New hash: {current_map[file_path]}")
-                    log_alert(f"File modified: {file_path} | Old: {baseline_hash[:16]}... | New: {current_map[file_path][:16]}...")
+                    log_alert(f"File modified: {file_path} | Old: {baseline_hash} | New: {current_map[file_path]}", args.log)
             
             # Check for new files
             for file_path in current_map:
                 if file_path not in baseline_map:
                     print(f"New file detected: {file_path}")
-                    log_alert(f"New file detected: {file_path}")
+                    log_alert(f"New file detected: {file_path}", args.log)
             
             baseline_map = current_map
 
