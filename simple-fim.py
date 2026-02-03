@@ -30,6 +30,9 @@ def calculate_directory_map(target_folder):
     # Collect all file paths first
     for root, dirs, files in os.walk(target_folder):
         for file in files:
+            # Skip the log file to avoid infinite self-modification detection
+            if file == "integrity_log.txt":
+                continue
             file_paths.append(os.path.join(root, file))
     
     # Process files in parallel using thread pool
@@ -45,6 +48,12 @@ def calculate_directory_map(target_folder):
                 print(f"Error hashing {path}: {e}")
     
     return file_map
+
+def log_alert(message):
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    print(f"[{timestamp}] {message}")
+    with open("integrity_log.txt", "a") as f:
+        f.write(f"[{timestamp}] {message}\n")
 
 def main():
     parser = argparse.ArgumentParser(description="Simple File Integrity Monitor")
@@ -73,6 +82,7 @@ def main():
                 print(f"Current Hash: {current_hash}")
                 baseline_hash = current_hash
                 print(f"Baseline hash updated to {baseline_hash}")
+                log_alert(f"File modified: {args.file} | Old: {baseline_hash[:16]}... | New: {current_hash[:16]}...")
 
     # Directory monitoring mode
     if args.directory:
@@ -92,15 +102,18 @@ def main():
             for file_path, baseline_hash in baseline_map.items():
                 if file_path not in current_map:
                     print(f"File deleted: {file_path}")
+                    log_alert(f"File deleted: {file_path}")
                 elif current_map[file_path] != baseline_hash:
                     print(f"File modified: {file_path}")
                     print(f"  Old hash: {baseline_hash}")
                     print(f"  New hash: {current_map[file_path]}")
+                    log_alert(f"File modified: {file_path} | Old: {baseline_hash[:16]}... | New: {current_map[file_path][:16]}...")
             
             # Check for new files
             for file_path in current_map:
                 if file_path not in baseline_map:
                     print(f"New file detected: {file_path}")
+                    log_alert(f"New file detected: {file_path}")
             
             baseline_map = current_map
 
