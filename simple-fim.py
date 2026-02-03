@@ -3,13 +3,15 @@ import argparse
 import sys
 import time
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def calculate_hash(file_path):
     """Calculate the SHA256 hash of a file."""
     sha256_hash = hashlib.sha256()
     try:
         with open(file_path, "rb") as f:
-            for byte_block in iter(lambda: f.read(4096), b""):
+            # Use 1MB buffer for better I/O performance
+            for byte_block in iter(lambda: f.read(1048576), b""):
                 sha256_hash.update(byte_block)
         return sha256_hash.hexdigest()
         
@@ -21,12 +23,27 @@ def calculate_hash(file_path):
         sys.exit(1)
 
 def calculate_directory_map(target_folder):
-    """Calculate the SHA256 hash of all files in a directory."""
+    """Calculate the SHA256 hash of all files in a directory using parallel processing."""
     file_map = {}
+    file_paths = []
+    
+    # Collect all file paths first
     for root, dirs, files in os.walk(target_folder):
         for file in files:
-            file_path = os.path.join(root, file)
-            file_map[file_path] = calculate_hash(file_path)
+            file_paths.append(os.path.join(root, file))
+    
+    # Process files in parallel using thread pool
+    with ThreadPoolExecutor() as executor:
+        # Submit all hashing tasks
+        future_to_path = {executor.submit(calculate_hash, path): path for path in file_paths}
+        
+        for future in as_completed(future_to_path):
+            path = future_to_path[future]
+            try:
+                file_map[path] = future.result()
+            except Exception as e:
+                print(f"Error hashing {path}: {e}")
+    
     return file_map
 
 def main():
@@ -59,9 +76,13 @@ def main():
 
     # Directory monitoring mode
     if args.directory:
+        start_time = time.time()
         baseline_map = calculate_directory_map(args.directory)
+        elapsed_time = time.time() - start_time
+        
         print(f"Monitoring directory: {args.directory}")
         print(f"Tracking {len(baseline_map)} files")
+        print(f"Initial scan took {elapsed_time:.2f} seconds")
 
         while True:
             time.sleep(5)
