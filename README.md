@@ -75,6 +75,10 @@ python simple-fim.py -d <directory_path> -w <webhook_url>
 - [x] **Calculate Diff:** Detect exactly which lines were added, removed, or changed in modified text files.
 - [x] **Detailed Alerts:** Include the diff output in terminal logs, log file entries, and Discord notifications.
 
+### Phase 4: 
+- [ ] **Real-Time Monitoring:** Use `watchdog` to receive real-time filesystem events.
+- [ ] **Noise Reduction:** Implement a '.fimignore' file to exclude certain files and directories from monitoring as an option.
+
 ## ⚠️ Limitations
 
 - **Polling-Based Detection:** This tool uses a polling interval (default: 5 seconds) to check for file changes. If a file is modified and then reverted back to its original state before the next check, the change will **not** be detected.
