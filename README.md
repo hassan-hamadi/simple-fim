@@ -18,6 +18,8 @@ This tool is designed for educational purposes to demonstrate the concepts of **
 - [x] **Parallel Hashing:** Uses ThreadPoolExecutor for fast multi-file processing.
 - [x] **Timestamped Logging:** Alerts logged to `integrity_log.txt`.
 - [x] **Discord Alerts:** Push notifications via Discord webhook integration.
+- [x] **Calculate Diff:** Detect exactly which lines were added, removed, or changed in modified text files.
+- [x] **Detailed Alerts:** Include the diff output in terminal logs, log file entries, and Discord notifications.
 
 
 ## 🛠️ Installation
@@ -70,8 +72,19 @@ python simple-fim.py -d <directory_path> -w <webhook_url>
 - [x] **Alerting:** Integrate a Webhook (Discord/Slack) for push notifications.
 
 ### Phase 3: Diff & Forensics
-- [ ] **Calculate Diff:** Detect exactly which lines were added, removed, or changed in modified text files.
-- [ ] **Detailed Alerts:** Include the diff output in terminal logs, log file entries, and Discord notifications.
+- [x] **Calculate Diff:** Detect exactly which lines were added, removed, or changed in modified text files.
+- [x] **Detailed Alerts:** Include the diff output in terminal logs, log file entries, and Discord notifications.
+
+## ⚠️ Limitations
+
+- **Polling-Based Detection:** This tool uses a polling interval (default: 5 seconds) to check for file changes. If a file is modified and then reverted back to its original state before the next check, the change will **not** be detected.
+
+- **No Kernel-Level Access:** Unlike enterprise FIM solutions that use kernel-level hooks (e.g., `inotify`, `fanotify`, or Windows ETW), this script does not receive real-time filesystem events. This means:
+  - Rapid successive changes may be missed
+  - The exact timestamp of a change is approximate (within the polling interval)
+  - Higher polling frequency increases CPU usage
+
+- **Binary File Diffs:** Binary files (images, executables, etc.) are detected as modified via hash comparison, but no diff output is provided since binary diffs are not human-readable.
 
 ## 📜 License
 
